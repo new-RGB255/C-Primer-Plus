@@ -242,6 +242,7 @@ namespace fakedSTL {
 		}
 	} 
 
+	//namespace -> mergeSort
 	namespace {
 
 		template<class T>
@@ -298,7 +299,24 @@ namespace fakedSTL {
 		}
 	}
 
-	
+	//namespace -> quickSort
+	namespace {
+
+		template<class T>
+		T getMedian(std::vector<T>& vt, size_t left, size_t right) {
+			size_t middle = (left + right) >> 1;
+
+		}
+
+	}
+
+	//快速排序
+	template<class T> //数组使用vector容器
+	void quickSort(std::vector<T>& vt, size_t left, size_t right) {
+		size_t i, j;
+		T pivot = getMedian(vt, left, right);
+
+	}
 
 
 
