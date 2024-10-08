@@ -7,9 +7,9 @@ int main(void) {
 	using namespace std;
 	using fakedSTL::arrayList;
 
-	vector<int> res{ 2,4,67,7,32,5,22,5 };
+	vector<int> res{ 2,4,6,7,32,5,22,5 };
 	size_t len = res.size() - 1;
-	fakedSTL::mergeSort(res, 0, len);
+	fakedSTL::quickSort(res, 0, len);
 	for (auto num : res) {
 		cout << num << " ";
 	}

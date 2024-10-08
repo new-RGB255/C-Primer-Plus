@@ -11,7 +11,7 @@
 #include<string>
 #include<stack>
 
-
+//statemate
 namespace fakedSTL {
 
 	template<class T>
@@ -81,6 +81,7 @@ namespace fakedSTL {
 */
 
 
+//definition
 namespace fakedSTL {
 
 	template<class T>
@@ -283,6 +284,7 @@ namespace fakedSTL {
 	}
 
 	//归并排序
+	//using namespace -> mergeSort
 	template<class T> //数组使用vector容器
 	void mergeSort(std::vector<T>& vt, size_t left, size_t right) {
 		if (vt.size() == 1) return;
@@ -303,19 +305,53 @@ namespace fakedSTL {
 	namespace {
 
 		template<class T>
-		T getMedian(std::vector<T>& vt, size_t left, size_t right) {
+		T getMedian_3(std::vector<T>& vt, size_t left, size_t right) {
 			size_t middle = (left + right) >> 1;
+			if (vt[left] < vt[middle])          // 以a, b, c分别表示vt[left], vt[middle], vt[right]
+				if (vt[middle] < vt[right])		// a < b < c
+					return vt[middle];			//
+				else if (vt[left] < vt[right])	// a < b, b >= c, a < c
+					return vt[right];			//
+				else							// b > a >= c
+					return vt[left];			//
+			else if (vt[left] < vt[right])		// c > a >= b
+				return vt[left];				//
+			else if (vt[middle] < vt[right])	// a >= b, a >= c, b < c
+				return vt[right];				//
+			else								// c >= b >= a
+				return vt[middle];
+		}
 
+		template<class T>
+		size_t partition(std::vector<T>& vt, size_t left, size_t right) {
+			T pivot = getMedian_3(vt, left, right);
+			size_t first = left;
+			size_t last = right;
+
+			while (true) {
+				while (vt[first] < pivot) {
+					++first;
+				}
+				while (vt[last] > pivot) {
+					--last;
+				}
+				if (!(first < last)) return first;
+				std::swap(vt[first], vt[last]);
+				++first;
+			}
 		}
 
 	}
 
 	//快速排序
+	//using namespace -> quickSort
 	template<class T> //数组使用vector容器
 	void quickSort(std::vector<T>& vt, size_t left, size_t right) {
-		size_t i, j;
-		T pivot = getMedian(vt, left, right);
-
+		if (left < right) {
+			size_t median = partition(vt, left, right);
+			quickSort(vt, left, median - 1);
+			quickSort(vt, median + 1, right);
+		}
 	}
 
 
