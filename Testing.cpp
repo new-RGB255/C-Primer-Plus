@@ -7,7 +7,7 @@ int main(void) {
 	using namespace std;
 	using fakedSTL::arrayList;
 
-	vector<int> res{ 2,4,6,7,32,5,22,5 };
+	vector<int> res{ 2,4,6,7,32,5,22,5 ,239,464,12,34535,53,22 };
 	size_t len = res.size() - 1;
 	fakedSTL::quickSort(res, 0, len);
 	for (auto num : res) {

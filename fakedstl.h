@@ -207,6 +207,16 @@ namespace fakedSTL {
 	}
 
 	template<class T>
+	void insertionSort(std::vector<T>& vt, size_t left, size_t right) {
+		size_t len = right - left + 1;
+		for (size_t i = 1; i < len; ++i) {
+			for (size_t j = i; j > 0 && vt[j - 1] > vt[j]; --j) {
+				std::swap(vt[j - 1], vt[j]);
+			}
+		}
+	}
+
+	template<class T>
 	void insertionSort(T& array, size_t len) {
 		for (size_t i = 1; i < len; ++i) {
 			for (size_t j = i; j > 0 && array[j - 1] > array[j]; --j) {
@@ -305,41 +315,69 @@ namespace fakedSTL {
 	namespace {
 
 		template<class T>
-		T getMedian_3(std::vector<T>& vt, size_t left, size_t right) {
+		T getMedian_3(std::vector<T>& vt, size_t left, size_t right, size_t& index) {
 			size_t middle = (left + right) >> 1;
-			if (vt[left] < vt[middle])          // 以a, b, c分别表示vt[left], vt[middle], vt[right]
-				if (vt[middle] < vt[right])		// a < b < c
-					return vt[middle];			//
-				else if (vt[left] < vt[right])	// a < b, b >= c, a < c
-					return vt[right];			//
-				else							// b > a >= c
-					return vt[left];			//
-			else if (vt[left] < vt[right])		// c > a >= b
-				return vt[left];				//
-			else if (vt[middle] < vt[right])	// a >= b, a >= c, b < c
-				return vt[right];				//
-			else								// c >= b >= a
+			if (vt[left] < vt[middle])				// 以a, b, c分别表示vt[left], vt[middle], vt[right]
+				if (vt[middle] < vt[right])	{		// a < b < c
+					index = middle;					// 
+					return vt[middle];				// 
+				}									// 
+				else if (vt[left] < vt[right]) {	// a < b, b >= c, a < c
+					index = right;					// 
+					return vt[right];				// 
+				}									// 
+				else {// b > a >= c					// 
+					index = left;					// 
+					return vt[left];				// 
+
+				}									// 
+			else if (vt[left] < vt[right]) {		// c > a >= b
+				index = left;						// 
+				return vt[left];					// 
+			}										// 
+			else if (vt[middle] < vt[right]) {		// a >= b, a >= c, b < c
+				index = right;						// 
+				return vt[right];					// 
+			}										// 
+			else {									// c >= b >= a
+				index = middle;
 				return vt[middle];
+			}
 		}
 
 		template<class T>
 		size_t partition(std::vector<T>& vt, size_t left, size_t right) {
-			T pivot = getMedian_3(vt, left, right);
-			size_t first = left;
+			size_t index = 0;
+			T pivot = getMedian_3(vt, left, right, index);
+			std::swap(vt[left], vt[index]);
+			size_t first = left + 1;
 			size_t last = right;
 
 			while (true) {
 				while (vt[first] < pivot) {
+					if (first == vt.size() - 1) break;
 					++first;
 				}
 				while (vt[last] > pivot) {
 					--last;
 				}
-				if (!(first < last)) return first;
+				if (!(first < last)) {
+					if (vt[first] < pivot) {
+						std::swap(vt[left], vt[first]);
+						return first;
+					}
+					else if (vt[first] > pivot) {
+						std::swap(vt[left], vt[first - 1]);
+						return first - 1;
+					}
+					return first;
+				}
 				std::swap(vt[first], vt[last]);
 				++first;
 			}
 		}
+
+		static const int cutoff = 3;
 
 	}
 
@@ -347,10 +385,16 @@ namespace fakedSTL {
 	//using namespace -> quickSort
 	template<class T> //数组使用vector容器
 	void quickSort(std::vector<T>& vt, size_t left, size_t right) {
-		if (left < right) {
-			size_t median = partition(vt, left, right);
-			quickSort(vt, left, median - 1);
-			quickSort(vt, median + 1, right);
+		if (left + cutoff <= right) {
+			if (left < right) {
+				size_t median = partition(vt, left, right);
+				if (median - 1 == 0) return;
+				quickSort(vt, left, median - 1);
+				quickSort(vt, median + 1, right);
+			}
+		}
+		else {
+			insertionSort(vt, left, right);
 		}
 	}
 
