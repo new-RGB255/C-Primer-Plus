@@ -10,6 +10,8 @@
 #include<cmath>
 #include<string>
 #include<stack>
+#include<map>
+#include<unordered_map>
 
 //statemate
 namespace fakedSTL {
@@ -42,12 +44,6 @@ namespace fakedSTL {
 		//friend
 		template<class _T>
 		friend std::ostream& operator<<(std::ostream& out, const arrayList<_T>& array);
-	private:
-		T* element;
-		int arrayLength;
-		int listSize;
-		const int initialSize = 10;
-		void checkIndex(int theIndex) const;
 	public:
 		arrayList(int initialCapacity = 10);
 		arrayList(const arrayList<T>& array);
@@ -60,10 +56,37 @@ namespace fakedSTL {
 		virtual void insert(int theIndex, const T& theElement);
 		virtual void output(std::ostream& out) const;
 		int capacity() const { return arrayLength; }
-
+	private:
+		T* element;
+		int arrayLength;
+		int listSize;
+		const int initialSize = 10;
+		void checkIndex(int theIndex) const;
 	};
 
-	
+
+
+	/*
+		*并查集声明
+	*/
+	template<class T>
+	class unionFindNode {
+	public:
+		unionFindNode(const std::vector<T>& vt) :_ufs(vt.size(), -1);
+		~unionFindNode() {}
+		int find(const T& element);
+		void unite(const T& element1, const T& element2);
+		int getNum() {
+			int count = 0;
+			for (auto val : _ufs) {
+				if (val < 0) ++count;
+			}
+			return count;
+		}
+	private:
+		std::vector<int> _ufs;
+		std::unordered_map<T, int> _indexmap;
+	};
 
 
 
@@ -185,6 +208,30 @@ namespace fakedSTL {
 			out << array.element[i] << " ";
 		}
 		return out;
+	}
+
+
+
+	/*
+		*并查集函数定义
+	*/
+	template<class T>
+	unionFindNode<T>::unionFindNode(const std::vector<T>& vt) :_ufs(vt.size(), -1) {
+		for (int i = 0; i < vt.size(); ++i) {
+			_indexmap[vt[i]] = i;
+		}
+	}
+
+	template<class T>
+	int unionFindNode<T>::find(const T& x) {
+
+	}
+
+	template<class T>
+	void unionFindNode<T>::unite(const T& element1, const T& element2) {
+		int root1 = _indexmap[element1], root2 = _indexmap[element2];
+		if (_ufs[root1] < _ufs[root2]) _ufs[root1] = root2;
+		else _ufs[root2] = root1;
 	}
 
 
@@ -398,7 +445,7 @@ namespace fakedSTL {
 		}
 	}
 
-
+	
 
 
 
