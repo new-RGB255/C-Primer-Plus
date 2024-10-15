@@ -6,15 +6,16 @@ int main(void) {
 
 	using namespace std;
 	using fakedSTL::arrayList;
+	using fakedSTL::unionFindNode;
 
-	vector<int> res{ 2,4,6,7,32,5,22,5 ,239,464,12,34535,53,22 };
-	size_t len = res.size() - 1;
-	fakedSTL::quickSort(res, 0, len);
-	for (auto num : res) {
-		cout << num << " ";
-	}
-	cout << endl;
-
+	vector<string> vt = { "jigfdjg","Dsofo","jaig43","DJHldslfj" };
+	unionFindNode<string> ufn(vt);
+	cout << ufn.getNum() << endl;
+	ufn.unite("jigfdjg", "DJHldslfj");
+	cout << ufn.getHeight("DJHldslfj") << " " << ufn.getHeight("jigfdjg") << endl;
+	ufn.unite("DJHldslfj", "Dsofo");
+	cout << ufn.getNum() << endl;
+	cout << ufn.getHeight("jigfdjg") << " " << ufn.getHeight("Dsofo") << endl;
 	
 
 	/*arrayList<int> test;

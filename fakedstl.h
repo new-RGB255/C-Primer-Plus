@@ -72,10 +72,13 @@ namespace fakedSTL {
 	template<class T>
 	class unionFindNode {
 	public:
-		unionFindNode(const std::vector<T>& vt) :_ufs(vt.size(), -1);
+		unionFindNode(const std::vector<T>& vt);
 		~unionFindNode() {}
 		int find(const T& element);
 		void unite(const T& element1, const T& element2);
+		int getHeight(const T& element) {
+			return _ufs[_indexmap[element]];
+		}
 		int getNum() {
 			int count = 0;
 			for (auto val : _ufs) {
@@ -223,15 +226,28 @@ namespace fakedSTL {
 	}
 
 	template<class T>
-	int unionFindNode<T>::find(const T& x) {
-
+	int unionFindNode<T>::find(const T& element) {
+		int root = _indexmap[element];
+		int pos = _indexmap[element];
+		while (_ufs[root] >= 0) {
+			root = _ufs[root];
+		}
+		while (_ufs[pos] >= 0) {
+			int parent = _ufs[pos];
+			_ufs[pos] = root;
+			pos = parent;
+		}
+		return root;
 	}
 
 	template<class T>
 	void unionFindNode<T>::unite(const T& element1, const T& element2) {
-		int root1 = _indexmap[element1], root2 = _indexmap[element2];
+		int root1 = find(element1), root2 = find(element2);
 		if (_ufs[root1] < _ufs[root2]) _ufs[root1] = root2;
-		else _ufs[root2] = root1;
+		else {
+			if (_ufs[root1] == _ufs[root2]) --_ufs[root1];
+			_ufs[root2] = root1;
+		}
 	}
 
 
