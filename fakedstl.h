@@ -93,6 +93,50 @@ namespace fakedSTL {
 
 
 
+	
+	template<class T>
+	class graph {
+	public:
+		virtual ~graph() {}
+		virtual int numberOfVertices() = 0;
+		virtual int numberOfEdge() = 0;
+		virtual bool existsEdge(int, int) = 0;
+		virtual void insertEdge(T, T) = 0;
+		virtual void eraseEdge(T, T) = 0;
+		virtual int degree(int) const = 0;
+		virtual int inDegree(int) const = 0;
+		virtual int outDegree(int) const = 0;
+		//
+		virtual bool directed() const = 0;
+		//当前仅当是有向图时返回值是true
+		virtual bool weighted() const = 0;
+		//当前仅当是加权图时返回值是true
+		
+	};
+
+
+
+	template<class T>
+	class adjacencyWDigraph :public graph<T> {
+	public:
+		virtual adjacencyWDigraph(int numberOfVertices = 0) {
+			if (numberOfVertices < 0) {
+				std::cout << "number of vertices must be >= 0\n";
+				exit(EXIT_FAILURE);
+			}
+			ver = numberOfVertices;
+			edg = 0;
+			std::vector<std::vector<int>> vt(ver, std::vector<int>(ver));
+		}
+	protected:
+		int ver;
+		int edg;
+		std::unordered_map<T, int> _mp;
+	};
+
+
+
+
 
 
 
