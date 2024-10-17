@@ -98,14 +98,14 @@ namespace fakedSTL {
 	class graph {
 	public:
 		virtual ~graph() {}
-		virtual int numberOfVertices() = 0;
-		virtual int numberOfEdge() = 0;
-		virtual bool existsEdge(int, int) = 0;
+		virtual int numberOfVertices() const = 0;
+		virtual int numberOfEdge() const = 0;
+		virtual bool existsEdge(int, int) const = 0;
 		virtual void insertEdge(T, T) = 0;
 		virtual void eraseEdge(T, T) = 0;
-		virtual int degree(int) const = 0;
-		virtual int inDegree(int) const = 0;
-		virtual int outDegree(int) const = 0;
+		virtual int degree(T) const = 0;
+		virtual int inDegree(T) const = 0;
+		virtual int outDegree(T) const = 0;
 		//
 		virtual bool directed() const = 0;
 		//当前仅当是有向图时返回值是true
@@ -119,19 +119,73 @@ namespace fakedSTL {
 	template<class T>
 	class adjacencyWDigraph :public graph<T> {
 	public:
-		virtual adjacencyWDigraph(int numberOfVertices = 0) {
+		adjacencyWDigraph(int numberOfVertices = 0) {
 			if (numberOfVertices < 0) {
 				std::cout << "number of vertices must be >= 0\n";
 				exit(EXIT_FAILURE);
 			}
 			ver = numberOfVertices;
 			edg = 0;
-			std::vector<std::vector<int>> vt(ver, std::vector<int>(ver));
+			vt.resize(ver + 1, std::vector<int>(ver + 1));
+			for (int i = 1; i <= ver; ++i) {
+				for (int j = 1; j <= ver; ++j) {
+					vt[i][j] = MAX;
+				}
+			}
+			T ch;
+			std::cout << "enter value:";
+			for (int i = 1; i <= ver; ++i) {
+				std::cin >> ch;
+				_mp[ch] = i;
+			}
 		}
+
+		virtual ~adjacencyWDigraph() {}
+		virtual int numberOfVertices() const { return ver; }
+		virtual int numberOfEdge() const { return edg; }
+		virtual bool directed() const { return true; }
+		virtual bool weighted() const { return true; }
+
+		virtual bool existsEdge(int i, int j) const {
+			if (i < 1 || j < 1 || i > ver || j > ver || vt[i][j] == MAX) {
+				return false;
+			}
+			else {
+				return true;
+			}
+		}
+
+		virtual void insertEdge(T, T);
+		virtual void eraseEdge(T, T);
+
+		virtual int degree(T ch) const { return inDegree(ch) + outDegree(ch); }
+
+		virtual int inDegree(T ch) const {
+			int sum = 0;
+			int v = _mp[ch];
+			for (int i = 1; i <= ver; ++i) {
+				if (vt[i][v] != 0)
+					++sum;
+			}
+			return sum;
+		}
+
+		virtual int outDegree(T ch) const {
+			int sum = 0;
+			int v = _mp[ch];
+			for (int j = 1; j <= ver; ++j) {
+				if (vt[v][j] != 0)
+					++sum;
+			}
+			return sum;
+		}
+
 	protected:
 		int ver;
 		int edg;
+		std::vector<std::vector<int>> vt;
 		std::unordered_map<T, int> _mp;
+		const int MAX = INT32_MAX;
 	};
 
 
@@ -291,6 +345,36 @@ namespace fakedSTL {
 		else {
 			if (_ufs[root1] == _ufs[root2]) --_ufs[root1];
 			_ufs[root2] = root1;
+		}
+	}
+
+
+
+	//
+	template<class T>
+	void adjacencyWDigraph<T>::insertEdge(T ch1, T ch2) {
+		int v1 = _mp[ch1];
+		int v2 = _mp[ch2];
+		if (v1 < 1 || v2 < 1 || v1 > ver || v2 > ver || v1 == v2) {
+			std::cout << "(" << v1 << "," << v2 << ")"
+				<< "is not a permissible edge\n";
+			exit(EXIT_FAILURE);
+		}
+		if (!existsEdge(_mp[ch1], _mp[ch2])) {
+			int weight;
+			std::cout << "enter weight:";
+			std::cin >> weight;
+			vt[v1][v2] = weight;
+		}
+	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::eraseEdge(T ch1, T ch2) {
+		int v1 = _mp[ch1];
+		int v2 = _mp[ch2];
+		if (v1 >= 1 && v2 >= 1 && v1 <= ver && v2 <= ver && vt[v1][v2] != MAX) {
+			vt[v1][v2] = MAX;
+			--edg;
 		}
 	}
 
