@@ -89,5 +89,8 @@
     <ClInclude Include="fakedstl.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="vertexIterator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

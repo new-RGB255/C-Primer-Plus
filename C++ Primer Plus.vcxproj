@@ -154,6 +154,7 @@
     <ClInclude Include="String.h" />
     <ClInclude Include="tabtenn0.h" />
     <ClInclude Include="vect.h" />
+    <ClInclude Include="vertexIterator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

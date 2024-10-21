@@ -12,9 +12,17 @@ int main(void) {
 	using fakedSTL::adjacencyWDigraph;
 	adjacencyWDigraph<char> adj(4);
 	
-	adj.insertEdge('a', 'b');
+	adj.insert_edge('a', 'b');
 	
-	
+	vector<int> res;
+
+	if (adj.topologicalOrder(res)) {
+		for (auto num : res)
+			cout << num << " ";
+	}
+	else {
+		cout << "has a circle";
+	}
 	
 
 	return 0;

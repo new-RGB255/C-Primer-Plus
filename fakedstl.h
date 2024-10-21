@@ -13,6 +13,8 @@
 #include<map>
 #include<unordered_map>
 
+#include "vertexIterator.h"
+
 //statemate
 namespace fakedSTL {
 
@@ -101,17 +103,18 @@ namespace fakedSTL {
 		virtual int numberOfVertices() const = 0;
 		virtual int numberOfEdge() const = 0;
 		virtual bool existsEdge(int, int) const = 0;
-		virtual void insertEdge(T, T) = 0;
-		virtual void eraseEdge(T, T) = 0;
-		virtual int degree(T) const = 0;
-		virtual int inDegree(T) const = 0;
-		virtual int outDegree(T) const = 0;
+		virtual void insertEdge(int, int) = 0;
+		virtual void eraseEdge(int, int) = 0;
+		virtual int degree(int) const = 0;
+		virtual int inDegree(int) const = 0;
+		virtual int outDegree(int) const = 0;
+		virtual bool topologicalOrder(std::vector<int>&) = 0;
 		//
 		virtual bool directed() const = 0;
 		//当前仅当是有向图时返回值是true
 		virtual bool weighted() const = 0;
 		//当前仅当是加权图时返回值是true
-		
+
 	};
 
 
@@ -155,30 +158,61 @@ namespace fakedSTL {
 			}
 		}
 
-		virtual void insertEdge(T, T);
-		virtual void eraseEdge(T, T);
+	protected:
+		virtual void insertEdge(int, int);
+		virtual void eraseEdge(int, int);
 
-		virtual int degree(T ch) const { return inDegree(ch) + outDegree(ch); }
+		virtual int degree(int v) const { 
+			return inDegree(v) + outDegree(v); 
+		}
 
-		virtual int inDegree(T ch) const {
+		virtual int inDegree(int v) const {
 			int sum = 0;
-			int v = _mp[ch];
 			for (int i = 1; i <= ver; ++i) {
-				if (vt[i][v] != 0)
+				if (vt[i][v] != MAX)
 					++sum;
 			}
 			return sum;
 		}
 
-		virtual int outDegree(T ch) const {
+		virtual int outDegree(int v) const {
 			int sum = 0;
-			int v = _mp[ch];
 			for (int j = 1; j <= ver; ++j) {
-				if (vt[v][j] != 0)
+				if (vt[v][j] != MAX)
 					++sum;
 			}
 			return sum;
 		}
+
+	public:
+		virtual int degree(T _variable_name) {
+			int v = _mp[_variable_name];
+			return inDegree(v) + outDegree(v);
+		}
+
+		virtual int in_degree(T _variable_name) {
+			int v = _mp[_variable_name];
+			return inDegree(v);
+		}
+
+		virtual int out_degree(T _variable_name) {
+			int v = _mp[_variable_name];
+			return outDegree(v);
+		}
+
+		virtual void insert_edge(T _1_variable_name, T  _2_variable_name) {
+			int v1 = _mp[_1_variable_name];
+			int v2 = _mp[_2_variable_name];
+			insertEdge(v1, v2);
+		}
+
+		virtual void erase_edge(T _1_variable_name, T  _2_variable_name) {
+			int v1 = _mp[_1_variable_name];
+			int v2 = _mp[_2_variable_name];
+			eraseEdge(v1, v2);
+		}
+
+		virtual bool topologicalOrder(std::vector<int>& nums);
 
 	protected:
 		int ver;
@@ -350,17 +384,15 @@ namespace fakedSTL {
 
 
 
-	//
+	//图论
 	template<class T>
-	void adjacencyWDigraph<T>::insertEdge(T ch1, T ch2) {
-		int v1 = _mp[ch1];
-		int v2 = _mp[ch2];
+	void adjacencyWDigraph<T>::insertEdge(int v1, int v2) {
 		if (v1 < 1 || v2 < 1 || v1 > ver || v2 > ver || v1 == v2) {
 			std::cout << "(" << v1 << "," << v2 << ")"
 				<< "is not a permissible edge\n";
 			exit(EXIT_FAILURE);
 		}
-		if (!existsEdge(_mp[ch1], _mp[ch2])) {
+		if (!existsEdge(v1, v2)) {
 			int weight;
 			std::cout << "enter weight:";
 			std::cin >> weight;
@@ -369,13 +401,40 @@ namespace fakedSTL {
 	}
 
 	template<class T>
-	void adjacencyWDigraph<T>::eraseEdge(T ch1, T ch2) {
-		int v1 = _mp[ch1];
-		int v2 = _mp[ch2];
+	void adjacencyWDigraph<T>::eraseEdge(int v1, int v2) {
 		if (v1 >= 1 && v2 >= 1 && v1 <= ver && v2 <= ver && vt[v1][v2] != MAX) {
 			vt[v1][v2] = MAX;
 			--edg;
 		}
+	}
+
+	template<class T>
+	bool adjacencyWDigraph<T>::topologicalOrder(std::vector<int>& nums) {
+		int n = numberOfVertices();
+		nums.resize(n);
+		std::vector<int> indegree(n + 1, 0);
+		for (int i = 1; i <= n; ++i) {
+			indegree[i] = inDegree(i);
+		}
+		std::queue<int> q;
+		for (int i = 1; i <= n; ++i) {
+			if (indegree[i] == 0)
+				q.push(i);
+		}
+		int theVertex = 0;
+		while (!q.empty()) {
+			int currentVertex = q.front();
+			q.pop();
+			nums[theVertex++] = currentVertex;
+			for (int j = 1; j <= n; ++j) {
+				if (vt[theVertex][j] != MAX) {
+					--indegree[j];
+					if (indegree[j] == 0)
+						q.push(j);
+				}
+			}
+		}
+		return theVertex == n;
 	}
 
 
