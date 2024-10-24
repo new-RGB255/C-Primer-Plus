@@ -224,6 +224,8 @@ namespace fakedSTL {
 
 		virtual void bfs(int, std::vector<int>&);
 
+		virtual void BFS(T, std::vector<int>&);
+
 	protected:
 		int ver;
 		int edg;
@@ -450,18 +452,28 @@ namespace fakedSTL {
 	template<class T>
 	void adjacencyWDigraph<T>::bfs(int v, std::vector<int>& res) {
 		int n = numberOfVertices();
-		res.resize(n);
-		std::vector<bool> visited(n, false);
+		std::vector<bool> visited(n + 1, false);
 		std::queue<int> q;
+		visited[v] = true;
 		q.push(v);
 		while (!q.empty()) {
 			int theVertex = q.front();
 			res.push_back(theVertex);
 			q.pop();
-
+			for (int j = 1; j <= n; ++j) {
+				if (vt[theVertex][j] != MAX && visited[j] == false) {
+					q.push(j);
+					visited[j] = true;
+				}
+			}
 		}
 	}
 
+	template<class T>
+	void adjacencyWDigraph<T>::BFS(T  _variable_name, std::vector<int>& res) {
+		int v = _mp[_variable_name];
+		adjacencyWDigraph<T>::bfs(v, res);
+	}
 
 
 	/*
