@@ -114,6 +114,7 @@ namespace fakedSTL {
 		//当前仅当是有向图时返回值是true
 		virtual bool weighted() const = 0;
 		//当前仅当是加权图时返回值是true
+		virtual void bfs(int, std::vector<int>&) = 0;
 
 	};
 
@@ -158,7 +159,15 @@ namespace fakedSTL {
 			}
 		}
 
-	protected:
+		/*class myIterator :public vertexIterator<T> {
+		public:
+			
+		protected:
+			T* row;
+			int n;
+			int currentVertex;
+		};*/
+
 		virtual void insertEdge(int, int);
 		virtual void eraseEdge(int, int);
 
@@ -184,7 +193,6 @@ namespace fakedSTL {
 			return sum;
 		}
 
-	public:
 		virtual int degree(T _variable_name) {
 			int v = _mp[_variable_name];
 			return inDegree(v) + outDegree(v);
@@ -213,6 +221,8 @@ namespace fakedSTL {
 		}
 
 		virtual bool topologicalOrder(std::vector<int>& nums);
+
+		virtual void bfs(int, std::vector<int>&);
 
 	protected:
 		int ver;
@@ -435,6 +445,21 @@ namespace fakedSTL {
 			}
 		}
 		return theVertex == n;
+	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::bfs(int v, std::vector<int>& res) {
+		int n = numberOfVertices();
+		res.resize(n);
+		std::vector<bool> visited(n, false);
+		std::queue<int> q;
+		q.push(v);
+		while (!q.empty()) {
+			int theVertex = q.front();
+			res.push_back(theVertex);
+			q.pop();
+
+		}
 	}
 
 
