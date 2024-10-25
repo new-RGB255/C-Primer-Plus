@@ -115,7 +115,7 @@ namespace fakedSTL {
 		virtual bool weighted() const = 0;
 		//当前仅当是加权图时返回值是true
 		virtual void bfs(int, std::vector<int>&) = 0;
-
+		virtual void dfs(int, std::vector<int>&) = 0;
 	};
 
 
@@ -223,8 +223,9 @@ namespace fakedSTL {
 		virtual bool topologicalOrder(std::vector<int>& nums);
 
 		virtual void bfs(int, std::vector<int>&);
-
 		virtual void BFS(T, std::vector<int>&);
+		virtual void dfs(int, std::vector<int>&);
+		virtual void DFS(T, std::vector<int>&);
 
 	protected:
 		int ver;
@@ -474,6 +475,24 @@ namespace fakedSTL {
 		int v = _mp[_variable_name];
 		adjacencyWDigraph<T>::bfs(v, res);
 	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::dfs(int v, std::vector<int>& res) {
+		static std::vector<bool> visited(numberOfVertices() + 1, false);
+		visited[v] = true;
+		res.push_back(v);
+		for (int j = 1; j <= numberOfVertices(); ++j) {
+			if (vt[v][j] != MAX && visited[j] == false)
+				adjacencyWDigraph<T>::dfs(j, res);
+		}
+	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::DFS(T  _variable_name, std::vector<int>& res) {
+		int v = _mp[_variable_name];
+		adjacencyWDigraph<T>::dfs(v, res);
+	}
+
 
 
 	/*

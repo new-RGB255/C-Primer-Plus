@@ -10,16 +10,18 @@ int main(void) {
 
 
 	using fakedSTL::adjacencyWDigraph;
-	adjacencyWDigraph<int> adj(7);
+	adjacencyWDigraph<int> adj(5);
 
 	int _1, _2;
+	cout << "from _1 point to _2\n";
 	while (cin >> _1 >> _2) {
 		adj.insert_edge(_1, _2);
+		cout << "from _1 point to _2\n";
 	}
 	
 	vector<int> res;
 
-	adj.bfs(1, res);
+	adj.dfs(1, res);
 	for (auto num : res)
 		cout << num << " ";
 
