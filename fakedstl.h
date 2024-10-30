@@ -229,7 +229,9 @@ namespace fakedSTL {
 		virtual void DFS(T, std::vector<int>&);
 
 		virtual void shortestPaths(int, std::vector<int>&, int*);
+		virtual void shortestPaths(int, std::vector<int>&, std::vector<int>&);
 		virtual int shortestPaths(T, T);
+		virtual int shortestPaths(T, T, std::vector<int>&);
 
 	protected:
 		int ver;
@@ -550,6 +552,73 @@ namespace fakedSTL {
 		int* predecessor = new int[n + 1];
 		shortestPaths(v1, distanceFromSource, predecessor);
 		delete[] predecessor;
+		return distanceFromSource[v2];
+	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::shortestPaths(int sourceVertex, std::vector<int>& distanceFromSource, std::vector<int>& predecessor) {
+		int n = numberOfVertices();
+		if (sourceVertex < 1 || sourceVertex > n) {
+			std::cout << "Invalid source vertex\n";
+			exit(EXIT_FAILURE);
+		}
+		std::list<int> newReachableVertices;
+		for (int i = 1; i <= n; ++i) {
+			distanceFromSource[i] = vt[sourceVertex][i];
+			if (distanceFromSource[i] == MAX) {
+				predecessor[i] = -1;
+			}
+			else {
+				predecessor[i] = sourceVertex;
+				newReachableVertices.push_back(i);
+			}
+		}
+		distanceFromSource[sourceVertex] = 0;
+		predecessor[sourceVertex] = 0;
+		while (!newReachableVertices.empty()) {
+			std::list<int>::iterator inewReachableVertices = newReachableVertices.begin();
+			std::list<int>::iterator theEnd = newReachableVertices.end();
+			std::list<int>::iterator vposnewReachableVertices;
+			int v = *inewReachableVertices;
+			while (inewReachableVertices != theEnd) {
+				int w = *inewReachableVertices;
+				++inewReachableVertices;
+				v = distanceFromSource[w] < distanceFromSource[v] ? w : v;
+				vposnewReachableVertices = std::find(newReachableVertices.begin(), newReachableVertices.end(), v);
+			}
+			newReachableVertices.erase(vposnewReachableVertices);
+			for (int j = 1; j <= n; ++j) {
+				if (vt[v][j] != MAX && (predecessor[j] == -1 || distanceFromSource[j] > distanceFromSource[v] + vt[v][j])) {
+					distanceFromSource[j] = distanceFromSource[v] + vt[v][j];
+					if (predecessor[j] == -1)
+						newReachableVertices.push_back(j);
+					predecessor[j] = v;
+				}
+			}
+		}
+	}
+
+	template<class T>
+	int adjacencyWDigraph<T>::shortestPaths(T _1_variable_name, T _2_variable_name, std::vector<int>& predecessor) {
+		int n = numberOfVertices();
+		int v1 = _mp[_1_variable_name];
+		int v2 = _mp[_2_variable_name];
+		std::vector<int> distanceFromSource(n + 1);
+		predecessor.resize(n + 1);
+		shortestPaths(v1, distanceFromSource, predecessor);
+		std::vector<int> res;
+		int v = v2;
+		while (true) {
+			res.push_back(predecessor[v]);
+			v = predecessor[v];
+			if (predecessor[v] == 0) break;
+		}
+		std::reverse(res.begin(), res.end());
+		std::cout << "the shortest path is ";
+		for (auto ans : res) {
+			std::cout << ans << " -> ";
+		}
+		std::cout << v2 << std::endl;
 		return distanceFromSource[v2];
 	}
 			
