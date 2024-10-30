@@ -549,6 +549,11 @@ namespace fakedSTL {
 		std::vector<int> distanceFromSource(n + 1);
 		std::vector<int> predecessor(n + 1);
 		shortestPaths(v1, distanceFromSource, predecessor);
+		if (distanceFromSource[v2] == MAX) {
+			std::cout << "no path can be to connect " << _1_variable_name << " with " 
+				<< _2_variable_name << std::endl;
+			return distanceFromSource[v2];
+		}
 		std::vector<int> res;
 		int v = v2;
 		while (true) {
