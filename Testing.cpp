@@ -8,9 +8,12 @@ int main(void) {
 	//using fakedSTL::arrayList;
 	//using fakedSTL::unionFindNode;
 
-
+	
 	using fakedSTL::adjacencyWDigraph;
-	adjacencyWDigraph<int> adj(5);
+	int num;
+	cout << "enter numbers of nodes:";
+	cin >> num;
+	adjacencyWDigraph<int> adj(num);
 
 	int _1, _2;
 	cout << "from _1 point to _2\n";
@@ -18,12 +21,16 @@ int main(void) {
 		adj.insert_edge(_1, _2);
 		cout << "from _1 point to _2\n";
 	}
-	
-	vector<int> res;
-
-	adj.dfs(1, res);
-	for (auto num : res)
-		cout << num << " ";
+	cin.clear();
+	cin.ignore();
+	int _index1, _index2;
+	cout << "enter the shortest path to be found\n";
+	while (cin >> _index1 >> _index2) {
+		cout << adj.shortestPaths(_index1, _index2) << endl;
+		cout << "enter the shortest path to be found\n";
+	}
+	cin.clear();
+	cin.ignore();
 
 
 	/*if (adj.topologicalOrder(res)) {
