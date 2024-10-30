@@ -24,10 +24,9 @@ int main(void) {
 	cin.clear();
 	cin.ignore();
 	int _index1, _index2;
-	vector<int> result;
 	cout << "enter the shortest path to be found\n";
 	while (cin >> _index1 >> _index2) {
-		int shortestpath = adj.shortestPaths(_index1, _index2, result);
+		int shortestpath = adj.shortestPaths(_index1, _index2);
 		cout << "the shorest length is ";
 		cout << shortestpath << endl;
 		cout << "enter the shortest path to be found\n";
