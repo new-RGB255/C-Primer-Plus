@@ -5,6 +5,7 @@
 #include<iostream>
 #include<cstdlib>
 #include<vector>
+#include<list>
 #include<queue>
 #include<valarray>
 #include<cmath>
