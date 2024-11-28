@@ -5,6 +5,10 @@
 int main(void) {
 
 	using namespace std;
+
+
+	
+
 	//using fakedSTL::arrayList;
 	//using fakedSTL::unionFindNode;
 
@@ -24,11 +28,17 @@ int main(void) {
 	cin.clear();
 	cin.ignore();
 	int _index1, _index2;
+	vector<vector<int>> c;
+	vector<vector<int>> kay;
+	adj.allPairs(c, kay);
 	cout << "enter the shortest path to be found\n";
 	while (cin >> _index1 >> _index2) {
+		cout << "this is the Dijkstra:\n";
 		int shortestpath = adj.shortestPaths(_index1, _index2);
 		cout << "the shorest length is ";
 		cout << shortestpath << endl;
+		cout << "\nthis is the Floyd:\n";
+		adj.outputPath(c, kay, _index1, _index2);
 		cout << "enter the shortest path to be found\n";
 	}
 	cin.clear();

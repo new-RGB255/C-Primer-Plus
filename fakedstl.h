@@ -93,7 +93,7 @@ namespace fakedSTL {
 		std::vector<int> _ufs;
 		std::unordered_map<T, int> _indexmap;
 	};
-
+	
 
 
 	
@@ -118,7 +118,7 @@ namespace fakedSTL {
 		virtual void bfs(int, std::vector<int>&) = 0;
 		virtual void dfs(int, std::vector<int>&) = 0;
 	};
-
+	
 
 
 	template<class T>
@@ -228,9 +228,14 @@ namespace fakedSTL {
 		virtual void dfs(int, std::vector<int>&);
 		virtual void DFS(T, std::vector<int>&);
 
+		// Dijkstra算法
 		virtual void shortestPaths(int, std::vector<int>&, std::vector<int>&);
 		virtual int shortestPaths(T, T);
 
+		// Floyd算法
+		virtual void allPairs(std::vector<std::vector<int>>&, std::vector<std::vector<int>>&);
+		virtual void outputPath(std::vector<std::vector<int>>&, std::vector<std::vector<int>>&, int, int);
+		virtual void outputPath(std::vector<std::vector<int>>&, int, int);
 	protected:
 		int ver;
 		int edg;
@@ -498,6 +503,7 @@ namespace fakedSTL {
 		adjacencyWDigraph<T>::dfs(v, res);
 	}
 
+	// Dijkstra算法
 	template<class T>
 	void adjacencyWDigraph<T>::shortestPaths(int sourceVertex, std::vector<int>& distanceFromSource, std::vector<int>& predecessor) {
 		int n = numberOfVertices();
@@ -568,6 +574,58 @@ namespace fakedSTL {
 		}
 		std::cout << v2 << std::endl;
 		return distanceFromSource[v2];
+	}
+
+	// Floyd算法
+	template<class T>
+	void adjacencyWDigraph<T>::allPairs(std::vector<std::vector<int>>& c, std::vector<std::vector<int>>& kay) {
+		int n = numberOfVertices();
+		std::vector<int> temp(n + 1);
+		c.resize(n + 1, temp);
+		kay.resize(n + 1, temp);
+		for (int i = 1; i <= n; ++i) {
+			for (int j = 1; j <= n; ++j) {
+				c[i][j] = vt[i][j];
+				kay[i][j] = 0;
+			}
+			c[i][i] = 0;
+		}
+		for (int k = 1; k <= n; ++k) {
+			for (int i = 1; i <= n; ++i) {
+				for (int j = 1; j <= n; ++j) {
+					if (c[i][k] != MAX && c[k][j] != MAX && 
+						(c[i][j] == MAX || c[i][j] > c[i][k] + c[k][j])) {
+						c[i][j] = c[i][k] + c[k][j];
+						kay[i][j] = k;
+					}
+				}
+			}
+		}
+	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::outputPath(std::vector<std::vector<int>>& c, std::vector<std::vector<int>>& kay, int i, int j) {
+		if (c[i][j] == MAX) {
+			std::cout << "There is no path from " << i << " to " << j << std::endl;
+		}
+		else {
+			std::cout << "The path is " << i << " ";
+			outputPath(kay, i, j);
+			std::cout << "\nthe shorest length is " << c[i][j];
+			std::cout << std::endl;
+		}
+	}
+
+	template<class T>
+	void adjacencyWDigraph<T>::outputPath(std::vector<std::vector<int>>& kay, int i, int j) {
+		if (i == j) return;
+		if (kay[i][j]==0) {
+			std::cout << j << " ";
+		}
+		else {
+			outputPath(kay, i, kay[i][j]);
+			outputPath(kay, kay[i][j], j);
+		}
 	}
 			
 
@@ -763,7 +821,7 @@ namespace fakedSTL {
 		static const int cutoff = 3;
 
 	}
-
+	
 	//快速排序
 	//using namespace -> quickSort
 	template<class T> //数组使用vector容器
