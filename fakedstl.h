@@ -841,7 +841,49 @@ namespace fakedSTL {
 
 	
 
+	// kmp字符串匹配算法
+	bool kmp(const std::string& main, const std::string& pattern) {
+		if (!main.size() && !pattern.size()) return true;
+		if (!main.size() || !pattern.size()) return false;
 
+		auto func_next = [&pattern]() -> std::vector<int> {
+			int m = pattern.size();
+			std::vector<int> next(m);
+			next[0] = 0;
+			for (int i = 1; i < m; ++i) {
+				int len = next[i - 1];
+				while (len && pattern[i] != pattern[len]) {
+					len = next[len - 1];
+				}
+				next[i] = (pattern[i] == pattern[len]) ? ++len : len;
+			}
+			return next;
+			};
+
+		auto func_kmp = [&](std::vector<int> next) -> bool {
+			int main_i = 0; // main中的指针
+			int pattern_j = 0; // pattern中的指针
+			while (main_i < main.size() && ((main.size() - main_i) >= (pattern.size() - pattern_j))) {
+				// 字符匹配, 指针后移
+				if (main[main_i] == pattern[pattern_j]) {
+					++main_i; ++pattern_j;
+				}
+				// 字符不匹配, 使用next数组跳过匹配串的一部分字符
+				// next数组存储的是当前匹配串字符的最长公共前缀长度
+				else if (pattern_j > 0) {
+					pattern_j = next[pattern_j - 1];
+				}
+				// 以上全部不满足就跳过主串的这个字符
+				else {
+					++main_i;
+				}
+				if (pattern_j == pattern.size()) return true;
+			}
+			return false;
+			};
+
+		return func_kmp(func_next());
+	}
 
 
 

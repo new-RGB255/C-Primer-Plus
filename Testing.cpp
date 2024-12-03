@@ -6,7 +6,11 @@ int main(void) {
 
 	using namespace std;
 
+	/*string s1("A");
+	string s2("");
 
+	string ans = (fakedSTL::kmp(s1, s2) == true) ? "true" : "false";
+	cout << ans;*/
 	
 
 	//using fakedSTL::arrayList;
