@@ -13,6 +13,21 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\书">
+      <UniqueIdentifier>{e0acd6aa-a199-44b2-9642-cae91746b72f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\数据结构与算法">
+      <UniqueIdentifier>{713eb450-40d1-47b0-b3b7-203015d22f02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\数据结构与算法\算法">
+      <UniqueIdentifier>{bda798df-68be-48a9-a77d-103e4a6850de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\数据结构与算法\模板库">
+      <UniqueIdentifier>{bef0efe5-3150-4b01-b7f7-44c198d256e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\数据结构与算法\模板库\数据结构">
+      <UniqueIdentifier>{d01d9a6f-3a3c-4522-a6a5-8d9bc1f1ca38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Project1.cpp">
@@ -62,35 +77,44 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bitOprea.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="vect.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="String.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="tabtenn0.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PascalsTriangle.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="accabc.h">
+      <Filter>头文件\书</Filter>
     </ClInclude>
     <ClInclude Include="brass.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="accabc.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\书</Filter>
     </ClInclude>
     <ClInclude Include="classic.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\书</Filter>
+    </ClInclude>
+    <ClInclude Include="String.h">
+      <Filter>头文件\书</Filter>
+    </ClInclude>
+    <ClInclude Include="tabtenn0.h">
+      <Filter>头文件\书</Filter>
+    </ClInclude>
+    <ClInclude Include="vect.h">
+      <Filter>头文件\书</Filter>
+    </ClInclude>
+    <ClInclude Include="PascalsTriangle.h">
+      <Filter>头文件\书</Filter>
+    </ClInclude>
+    <ClInclude Include="graph.h">
+      <Filter>头文件\数据结构与算法\模板库\数据结构</Filter>
+    </ClInclude>
+    <ClInclude Include="bitOprea.h">
+      <Filter>头文件\数据结构与算法\算法</Filter>
     </ClInclude>
     <ClInclude Include="fakedstl.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\数据结构与算法\模板库</Filter>
     </ClInclude>
-    <ClInclude Include="vertexIterator.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="rbtree.h">
+      <Filter>头文件\数据结构与算法\模板库\数据结构</Filter>
+    </ClInclude>
+    <ClInclude Include="unionfindnode.h">
+      <Filter>头文件\数据结构与算法\模板库\数据结构</Filter>
+    </ClInclude>
+    <ClInclude Include="linearlist.h">
+      <Filter>头文件\数据结构与算法\模板库\数据结构</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

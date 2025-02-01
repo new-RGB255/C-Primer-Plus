@@ -150,11 +150,14 @@
     <ClInclude Include="brass.h" />
     <ClInclude Include="classic.h" />
     <ClInclude Include="fakedstl.h" />
+    <ClInclude Include="graph.h" />
+    <ClInclude Include="linearlist.h" />
     <ClInclude Include="PascalsTriangle.h" />
+    <ClInclude Include="rbtree.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="tabtenn0.h" />
+    <ClInclude Include="unionfindnode.h" />
     <ClInclude Include="vect.h" />
-    <ClInclude Include="vertexIterator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
