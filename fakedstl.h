@@ -150,9 +150,9 @@ namespace fakedSTL {
 	void quickSort(std::vector<T>& vt, size_t left, size_t right) {
 		static const int cutoff = 3;
 		if (left + cutoff <= right) {
-			auto partition = [](std::vector<T>& vt, size_t left, size_t right) -> size_t {
+			auto partition = [](std::vector<T>& vt, size_t left, size_t right)->size_t {
 				size_t index = 0;
-				auto getMedian_3 = [](std::vector<T>& vt, size_t left, size_t right, size_t& index) -> T {
+				auto getMedian_3 = [](std::vector<T>& vt, size_t left, size_t right, size_t& index)->T {
 					size_t middle = (left + right) >> 1;
 					if (vt[left] < vt[middle])				// 以a, b, c分别表示vt[left], vt[middle], vt[right]
 						if (vt[middle] < vt[right]) {		// a < b < c
@@ -228,7 +228,7 @@ namespace fakedSTL {
 		if (!main.size() && !pattern.size()) return true;
 		if (!main.size() || !pattern.size()) return false;
 
-		auto func_next = [&pattern]() -> std::vector<int> {
+		auto func_next = [&pattern]()->std::vector<int> {
 			int m = pattern.size();
 			std::vector<int> next(m);
 			next[0] = 0;

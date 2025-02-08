@@ -13,6 +13,7 @@ struct _rb_tree_node_base {
 	using base_ptr = _rb_tree_node_base*;
 
 	colour_type colour;
+	colour_type doubleBlack = false; // 通过双黑标记在删除时通过该节点的所有路径都违反黑路同性质
 	base_ptr parent;
 	base_ptr left;
 	base_ptr right;
@@ -115,8 +116,8 @@ struct _rb_tree_base_iterator {
 			base_ptr ptr = node->left;
 			while (ptr->right) {
 				ptr = ptr->right;
-				node = ptr;
 			}
+			node = ptr;
 		}
 		else {
 			/*
@@ -147,7 +148,8 @@ struct _rb_tree_iterator :public _rb_tree_base_iterator {
 
 	_rb_tree_iterator() {}
 	explicit _rb_tree_iterator(link_type x) { node = x; }
-	explicit _rb_tree_iterator(const iterator& it) { node = it.node; }
+	_rb_tree_iterator(const iterator& it) { node = it.node; }
+	
 
 	reference operator*() const { return link_type(node)->value_field; }
 #ifdef _SGI_STLNO_ARROW_OPERATOR
@@ -167,9 +169,27 @@ struct _rb_tree_iterator :public _rb_tree_base_iterator {
 		decrement();
 		return tmp;
 	}
+
+	bool operator!=(const iterator& it) { return (*this).node != it.node; }
+	bool operator==(const iterator& it) { return (*this).node == it.node; }
+
+	self& operator=(const iterator& it) {
+		if (this == &it) return *this;
+		this->node = it.node;
+		return *this;
+	}
 };
 
+class none_existed :public std::exception {
+public:
+	none_existed() {}
+	~none_existed() {}
+	void what() { std::cerr << "none found" << std::endl; }
+};
 
+inline void _rb_tree_rebalance(_rb_tree_node_base* x, _rb_tree_node_base*& root);
+inline void _rb_tree_rotate_left(_rb_tree_node_base* x, _rb_tree_node_base*& root);
+inline void _rb_tree_rotate_right(_rb_tree_node_base* x, _rb_tree_node_base*& root);
 
 namespace fakedSTL {
 	template<class Key, class Value, class KeyOfValue, class Compare = std::less<Key>>
@@ -177,6 +197,7 @@ namespace fakedSTL {
 	protected:
 		using void_pointer = void*;
 		using colour_type = _rb_tree_colour_type;
+		using base = _rb_tree_node_base;
 		using base_ptr = _rb_tree_node_base*;
 		using rb_tree_node = _rb_tree_node<Value>;
 	public:
@@ -198,14 +219,14 @@ namespace fakedSTL {
 		link_type create_node(const value_type& x) { 
 			try {
 				link_type tmp = new rb_tree_node(x);
-				if (tmp == nullptr) {
-					std::bad_alloc bad;
-					throw bad;
+				if (tmp != nullptr) {
+					return tmp;
 				}
-				return tmp;
+				std::bad_alloc bad;
+				throw bad;
 			}
 			catch (const std::exception& bad) {
-				bad.what();
+				std::ignore = bad.what();
 			}
 		}
 
@@ -227,9 +248,9 @@ namespace fakedSTL {
 
 		// 获取header的成员
 
-		link_type& root(link_type x) const { return (link_type&)(header->parent); } // 获取根节点
-		link_type& leftmost(link_type x) const { return (link_type&)(header->left); } // 获取最小值
-		link_type& rightmost(link_type x) const { return (link_type&)(header->right); } // 获取最大值
+		link_type& root() const { return (link_type&)(header->parent); } // 获取根节点
+		link_type& leftmost() const { return (link_type&)(header->left); } // 获取最小值
+		link_type& rightmost() const { return (link_type&)(header->right); } // 获取最大值
 
 		// 获取节点x的成员
 
@@ -239,12 +260,14 @@ namespace fakedSTL {
 		static reference value(link_type x) { return x->value_field; }
 		static const key_type& key(link_type x) { return KeyOfValue()(value(x)); }
 		static colour_type& colour(link_type x) { return (colour_type&)(x->colour); }
+		static colour_type& doubleblack(link_type x) { return (colour_type&)(x->doubleBlack); }
 		static link_type& parent(base_ptr x) { return (link_type&)(x->parent); }
 		static link_type& left(base_ptr x) { return (link_type&)(x->left); }
 		static link_type& right(base_ptr x) { return (link_type&)(x->right); }
 		static reference value(base_ptr x) { return link_type(x)->value_field; }
 		static const key_type& key(base_ptr x) { return KeyOfValue()(value(link_type(x))); }
 		static colour_type& colour(base_ptr x) { return (colour_type&)(link_type(x)->colour); }
+		static colour_type& doubleblack(base_ptr x) { return (colour_type&)(link_type(x)->doubleBlack); }
 
 		// 获取极大值和极小值
 
@@ -280,7 +303,7 @@ namespace fakedSTL {
 			}
 			parent(newnode) = y;
 			// 新节点的颜色将在_rb_tree_rebalance()中调整
-			_rb_tree_rebalance(newnode, root());
+			_rb_tree_rebalance(newnode, header->parent);
 			++node_count;
 			return iterator(newnode);
 		}
@@ -289,8 +312,219 @@ namespace fakedSTL {
 
 		}
 
-		void _erase(link_type x) {
-
+		void _erase(iterator iter) {
+			link_type x = link_type(iter.node);
+			iterator it = iter;
+			auto delete_alone_leftchild = [&](link_type d) {
+				// d为删除点
+				if (d == rightmost()) { // 删除的是最大值,更改最大值
+					--it;
+					rightmost() = link_type(it.node);
+				}
+				if (d == root()) {
+					leftmost() = left(d);
+					rightmost() = left(d);
+					parent(parent(d)) = left(d);
+				}
+				else if (d == left(parent(d))) left(parent(d)) = left(d);
+				else right(parent(d)) = left(d);
+				parent(left(d)) = parent(d);
+				colour(left(d)) = _rb_tree_black;
+				delete_node(d);
+				};
+			auto delete_alone_rightchild = [&](link_type d) {
+				// d为删除点
+				if (d == leftmost()) { // 删除的是最小值,更改最小值
+					++it;
+					leftmost() = link_type(it.node);
+				}
+				if (d == root()) {
+					leftmost() = right(d);
+					rightmost() = right(d);
+					parent(parent(d)) = right(d);
+				}
+				else if (d == left(parent(d))) left(parent(d)) = right(d);
+				else right(parent(d)) = right(d);
+				parent(right(d)) = parent(d);
+				colour(right(d)) = _rb_tree_black;
+				delete_node(d);
+				};
+			auto delete_none_child = [&](link_type d) {
+				// d为删除点
+				if (d == leftmost()) { // 删除的是最小值,更改最小值
+					++it;
+					leftmost() = link_type(it.node);
+				}
+				else if (d == rightmost()) { // 删除的是最大值,更改最大值
+					--it;
+					rightmost() = link_type(it.node);
+				}
+				if (colour(d) == _rb_tree_red) { // 若d为红节点,删除后无需任何调整
+					if (left(parent(d)) == d) { // d在左支上
+						left(parent(d)) = nullptr;
+					}
+					else { // d在右支上
+						right(parent(d)) = nullptr;
+					}
+					delete_node(d);
+				} 
+				else { // d为黑节点(除根节点外),必然有兄弟,不然违反黑路同
+					if (d == root()) { // 删除点为根节点
+						leftmost() = nullptr;
+						rightmost() = nullptr;
+						parent(parent(d)) = nullptr;
+						delete_node(d);
+					}
+					else { // 其它
+						link_type tmp = d;
+						doubleblack(d) = true;
+						if (left(parent(d)) == d) { // d在左支上
+							while (doubleblack(d)) {
+								if (colour(right(parent(d))) == _rb_tree_red) { // 兄弟是红色
+									/*
+									*  兄父变色(兄变黑,父变红),朝双黑旋转
+									*/
+									colour(right(parent(d))) = _rb_tree_black;
+									colour(parent(d)) = _rb_tree_red;
+									_rb_tree_rotate_left(d->base::parent, header->base::parent); // 旋转后保持双黑节点继续判断
+								}
+								else { // 兄弟是黑色
+									if (left(right(parent(d))) != nullptr ||
+										right(right(parent(d))) != nullptr) { // 兄弟至少有一个红孩子(先保证节点不为空)
+										/*
+										*	(LL,RR,LR,RR)变色+旋转
+										*	(双黑变单黑)
+										*/
+										if (right(right(parent(d))) != nullptr &&
+											colour(right(right(parent(d)))) == _rb_tree_red) { // RR型
+											/*
+											*	令RR型节点从上到下依次为g(grandparent),p(parent),c(child)
+											*	则变色顺序为(c变p,p变g,g变黑)
+											*/
+											colour(right(right(parent(d)))) = colour(right(parent(d)));
+											colour(right(parent(d))) = colour(parent(d));
+											colour(parent(d)) = _rb_tree_black;
+											_rb_tree_rotate_left(d->base::parent, header->base::parent);
+											doubleblack(d) = false;
+										}
+										else { // RL型
+											/*
+											*	令RL型节点从上到下依次为g(grandparent),p(parent),c(child)
+											*	则变色顺序为(c变g,g变黑),p不变
+											*/
+											colour(left(right(parent(d)))) = colour(parent(d));
+											colour(parent(d)) = _rb_tree_black;
+											_rb_tree_rotate_right(d->base::parent->left, header->base::parent);
+											_rb_tree_rotate_left(d->base::parent, header->base::parent);
+											doubleblack(d) = false;
+										}
+									}
+									else { // 兄弟的孩子都是黑色(包括空节点,因为空节点定义为黑)
+										/*
+										*	兄弟变红,双黑上移
+										*	(遇红或根变单黑)
+										*/
+										colour(right(parent(d))) = _rb_tree_red;
+										doubleblack(d) = false;
+										d = parent(d);
+										doubleblack(d) = true;
+										if (colour(d) == _rb_tree_red || d == root()) {
+											doubleblack(d) = false;
+											colour(d) = _rb_tree_black;
+										}
+									}
+								}
+							}
+						}
+						else { // d在右支上
+							while (doubleblack(d)) {
+								if (colour(left(parent(d))) == _rb_tree_red) { // 兄弟是红色
+									/*
+									*  兄父变色(兄变黑,父变红),朝双黑旋转
+									*/
+									colour(left(parent(d))) = _rb_tree_black;
+									colour(parent(d)) = _rb_tree_red;
+									_rb_tree_rotate_right(d->base::parent, header->base::parent); // 旋转后保持双黑节点继续判断
+								}
+								else { // 兄弟是黑色
+									if (left(left(parent(d))) != nullptr ||
+										right(left(parent(d))) != nullptr) { // 兄弟至少有一个红孩子(先保证节点不为空)
+										/*
+										*	(LL,RR,LR,RR)变色+旋转
+										*	(双黑变单黑)
+										*/
+										if (left(left(parent(d))) != nullptr &&
+											colour(left(left(parent(d)))) == _rb_tree_red) { // LL型
+											/*
+											*	令LL型节点从上到下依次为g(grandparent),p(parent),c(child)
+											*	则变色顺序为(c变p,p变g,g变黑)
+											*/
+											colour(left(left(parent(d)))) = colour(left(parent(d)));
+											colour(left(parent(d))) = colour(parent(d));
+											colour(parent(d)) = _rb_tree_black;
+											_rb_tree_rotate_right(d->base::parent, header->base::parent);
+											doubleblack(d) = false;
+										}
+										else { // LR型
+											/*
+											*	令LR型节点从上到下依次为g(grandparent),p(parent),c(child)
+											*	则变色顺序为(c变g,g变黑),p不变
+											*/
+											colour(left(left(parent(d)))) = colour(parent(d));
+											colour(parent(d)) = _rb_tree_black;
+											_rb_tree_rotate_left(d->base::parent->left, header->base::parent);
+											_rb_tree_rotate_right(d->base::parent, header->base::parent);
+											doubleblack(d) = false;
+										}
+									}
+									else { // 兄弟的孩子都是黑色(包括空节点,因为空节点定义为黑)
+										/*
+										*	兄弟变红,双黑上移
+										*	(遇红或根变单黑)
+										*/
+										colour(left(parent(d))) = _rb_tree_red;
+										doubleblack(d) = false;
+										d = parent(d);
+										doubleblack(d) = true;
+										if (colour(d) == _rb_tree_red || d == root()) {
+											doubleblack(d) = false;
+											colour(d) = _rb_tree_black;
+										}
+									}
+								}
+							}
+						}
+						if (left(parent(tmp)) == tmp) { // tmp在左支上
+							left(parent(tmp)) = nullptr;
+						}
+						else { // tmp在右支上
+							right(parent(tmp)) = nullptr;
+						}
+						delete_node(tmp);
+					}
+				}
+				};
+			if (left(x) && right(x)) { // 左右子树都有
+				link_type prev = maximum(left(x)); // 找到删除点的前继节点
+				value(x) = value(prev);
+				if (prev == leftmost()) leftmost() = x; // 若删除点的前继节点为最小值,更改最小值
+				if (left(prev)) { 
+					delete_alone_leftchild(prev); 
+				}
+				else {
+					delete_none_child(prev);
+				}
+			}
+			else if (left(x)) { // 只有左孩子
+				delete_alone_leftchild(x);
+			}
+			else if (right(x)) { // 只有右孩子
+				delete_alone_rightchild(x);
+			}
+			else { // 没有孩子
+				delete_none_child(x);
+			}
+			--node_count;
 		}
 
 		void init() {
@@ -304,8 +538,15 @@ namespace fakedSTL {
 				rightmost() = header;
 			}
 			catch (const std::exception& bad) {
-				bad.what();
+				std::ignore = bad.what();
 			}
+		}
+
+		void clear(link_type p) {
+			if (p == nullptr) return;
+			clear(left(p));
+			clear(right(p));
+			self::destroy_node(p);
 		}
 	public:
 		/*
@@ -315,24 +556,18 @@ namespace fakedSTL {
 		RB_tree(const Compare& comp = Compare()) :node_count(0), key_compare(comp) { init(); }
 
 		~RB_tree() {
-			auto clear = [](auto&& clear, link_type p) {
-				if (p == nullptr) return;
-				clear(clear, p->left);
-				clear(clear, p->right);
-				delete_node(p);
-				};
-			clear(clear, root());
-			delete_node(header);
+			clear(root());
+			self::destroy_node(header);
 		}
 
 		self& operator=(const self& x) {
-			if (*this == x) return;
+			if (this == &x) return *this;
 
 		}
 	public:
 		Compare key_comp() const { return key_compare; }
-		iterator begin() { return leftmost(); }
-		iterator end() { return header; }
+		iterator begin() { return iterator(leftmost()); }
+		iterator end() { return iterator(header); }
 		bool empty() const { return node_count == 0; }
 		size_type size() const { return node_count; }
 		size_type max_size() const { return size_type(-1); }
@@ -379,6 +614,41 @@ namespace fakedSTL {
 			}
 			// 进行至此,表示新键值一定与树中既有节点之键值重复,不执行插入操作
 			return std::pair<iterator, bool>(j, false);
+		}
+
+		iterator find(const key_type& k) {
+			link_type target = header;
+			link_type cur = root();
+			while (cur) {
+				if (!key_compare(key(cur), k)) {
+					target = cur;
+					cur = left(cur);
+				}
+				else {
+					cur = right(cur);
+				}
+			}
+			iterator found = iterator(target);
+			return (found == end() || key_compare(k, key(found.node))) ? end() : found;
+		}
+
+		void erase(const key_type& k) {
+			try {
+				iterator iter = find(k);
+				if (iter == end()) {
+					none_existed ne;
+					throw ne;
+				}
+				/*
+				*	当确定找到该元素在RB_tree中的位置
+				*	执行以下删除操作,该操作包含使得RB_tree恢复红黑树性质
+				*	的平衡函数eraserebalance
+				*/
+				_erase(iter);
+			}
+			catch (const std::exception& ne) {
+				std::ignore = ne.what();
+			}
 		}
 	};
 }

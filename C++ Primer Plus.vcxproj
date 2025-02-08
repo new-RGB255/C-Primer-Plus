@@ -139,6 +139,7 @@
     <ClCompile Include="Project4.cpp" />
     <ClCompile Include="Project5.cpp" />
     <ClCompile Include="Project6.cpp" />
+    <ClCompile Include="rb_treeTest.cpp" />
     <ClCompile Include="tabtenn0.cpp" />
     <ClCompile Include="Testing.cpp" />
     <ClCompile Include="vect.cpp" />
