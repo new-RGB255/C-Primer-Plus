@@ -13,7 +13,7 @@ struct _rb_tree_node_base {
 	using base_ptr = _rb_tree_node_base*;
 
 	colour_type colour;
-	colour_type doubleBlack = false; // 通过双黑标记在删除时通过该节点的所有路径都违反黑路同性质
+	colour_type doubleBlack = false; // 通过双黑标记在删除时表示通过该节点的所有路径都违反黑路同性质
 	base_ptr parent;
 	base_ptr left;
 	base_ptr right;
@@ -308,8 +308,24 @@ namespace fakedSTL {
 			return iterator(newnode);
 		}
 
-		link_type _copy(link_type x, link_type p) {
-
+		void _copy(link_type x, link_type p) {
+			if (p == nullptr) return;
+			link_type newnode = clone_node(p);
+			newnode->parent = x;
+			if (x == header) { // 复制节点为根节点时
+				x->parent = newnode;
+				x = parent(x);
+			}
+			else if (p == p->parent->left) { // 复制节点在左支时
+				x->left = newnode;
+				x = left(x);
+			}
+			else { // 复制节点在右支时
+				x->right = newnode;
+				x = right(x);
+			}
+			_copy(x, link_type(p->left));
+			_copy(x, link_type(p->right));
 		}
 
 		void _erase(iterator iter) {
@@ -470,7 +486,7 @@ namespace fakedSTL {
 											*	令LR型节点从上到下依次为g(grandparent),p(parent),c(child)
 											*	则变色顺序为(c变g,g变黑),p不变
 											*/
-											colour(left(left(parent(d)))) = colour(parent(d));
+											colour(right(left(parent(d)))) = colour(parent(d));
 											colour(parent(d)) = _rb_tree_black;
 											_rb_tree_rotate_left(d->base::parent->left, header->base::parent);
 											_rb_tree_rotate_right(d->base::parent, header->base::parent);
@@ -555,14 +571,27 @@ namespace fakedSTL {
 
 		RB_tree(const Compare& comp = Compare()) :node_count(0), key_compare(comp) { init(); }
 
+		RB_tree(const self& rb) {
+			node_count = rb.node_count;
+			key_compare = rb.key_comp();
+			init();
+			_copy(header, link_type(rb.header->parent));
+			leftmost() = minimum(root());
+			rightmost() = maximum(root());
+		}
+
 		~RB_tree() {
-			clear(root());
+			if (!empty()) clear(root());
 			self::destroy_node(header);
 		}
 
-		self& operator=(const self& x) {
-			if (this == &x) return *this;
-
+		self& operator=(const self& rb) {
+			if (this == &rb) return *this;
+			clear();
+			_copy(header, link_type(rb.header->parent));
+			leftmost() = minimum(root());
+			rightmost() = maximum(root());
+			return *this;
 		}
 	public:
 		Compare key_comp() const { return key_compare; }
@@ -632,6 +661,14 @@ namespace fakedSTL {
 			return (found == end() || key_compare(k, key(found.node))) ? end() : found;
 		}
 
+		void clear() {
+			if (!empty()) clear(root());
+			parent(header) = nullptr;
+			leftmost() = header;
+			rightmost() = header;
+			node_count = 0;
+		}
+
 		void erase(const key_type& k) {
 			try {
 				iterator iter = find(k);
@@ -642,7 +679,7 @@ namespace fakedSTL {
 				/*
 				*	当确定找到该元素在RB_tree中的位置
 				*	执行以下删除操作,该操作包含使得RB_tree恢复红黑树性质
-				*	的平衡函数eraserebalance
+				*	的平衡函数
 				*/
 				_erase(iter);
 			}
